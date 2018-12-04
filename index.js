@@ -19,7 +19,9 @@ const parseCSV = new Transform({
     const lines = chunk.toString().split('\n')
     const [headers, ...data] = lines
 
-    lines.forEach((row) => {
+    process.stdout.write(headers + '\n')
+
+    data.forEach((row) => {
       this.push(row)
     })
 
