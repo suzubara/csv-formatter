@@ -1,4 +1,5 @@
-const { Transform } = require('stream');
+#!/usr/bin/env node
+const { Transform } = require('stream')
 const { DateTime, Duration } = require('luxon')
 
 /** CONSTANTS */
