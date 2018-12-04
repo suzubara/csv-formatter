@@ -9,23 +9,26 @@ const TIMESTAMP_FORMAT = 'M/d/yy h:mm:ss a'
 
 const ZIP_FORMAT = /^\d{5}$/
 const CSV_PATTERN = /(?:,|\n|^)("(?:(?:"")*[^"]*)*"|[^",\n]*|(?:\n|$))/g
+
+const INVALID_DATA_ERROR = 'Invalid Data Format'
 /** END CONSTANTS */
 
 const parseCSV = new Transform({
-  transform(chunk) {
+  transform(chunk, encoding, callback) {
     // split by new line
     const lines = chunk.toString().split('\n')
     const [headers, ...data] = lines
 
-    data.forEach((row) => {
+    lines.forEach((row) => {
       this.push(row)
     })
+
+    callback()
   }
 })
 
 const normalizeData = new Transform({
-  transform(chunk) {
-
+  transform(chunk, encoding, callback) {
     let row = parseCSVLine(chunk.toString())
 
     const [
@@ -39,26 +42,32 @@ const normalizeData = new Transform({
       notes,
     ] = row
 
-    const formattedTimestamp = formatTimestamp(timestamp)
-    const formattedZip = formatZip(zip)
-    const formattedName = capitalizeString(fullName)
+    try {
+      const formattedTimestamp = formatTimestamp(timestamp)
+      const formattedZip = formatZip(zip)
+      const formattedName = capitalizeString(fullName)
+    
+      const formattedFoo = formatDuration(fooDuration)
+      const formattedBar = formatDuration(barDuration)
+      const formattedTotal = formattedFoo.plus(formattedBar)
   
-    const formattedFoo = formatDuration(fooDuration)
-    const formattedBar = formatDuration(barDuration)
-    const formattedTotal = formattedFoo.plus(formattedBar)
+      const formattedRow = [
+        formattedTimestamp,
+        address,
+        formattedZip,
+        formattedName,
+        durationAsSeconds(formattedFoo),
+        durationAsSeconds(formattedBar),
+        durationAsSeconds(formattedTotal),
+        notes,
+      ]
+  
+      this.push(formattedRow.join(',') + '\n')
+    } catch (e) {
+      console.warn(`Warning: row dropped due to error - ${e.message}`)
+    }
 
-    const formattedRow = [
-      formattedTimestamp,
-      address,
-      formattedZip,
-      formattedName,
-      durationAsSeconds(formattedFoo),
-      durationAsSeconds(formattedBar),
-      durationAsSeconds(formattedTotal),
-      notes,
-    ]
-
-    this.push(formattedRow.join(',') + '\n')
+    callback()
   }
 })
 
@@ -83,8 +92,7 @@ const formatTimestamp = (value) => {
 	)
 
 	if (!timestamp.isValid) {
-		// stderr
-		// drop row
+    throw new Error(INVALID_DATA_ERROR)
 	}
 
 	const easternTimestamp = timestamp.setZone(US_EASTERN)
@@ -98,7 +106,7 @@ const formatZip = (value) => {
 		return value
 	}
 
-	// stderr, drop row
+  throw new Error(INVALID_DATA_ERROR)
 }
 
 const capitalizeString = (string) => {
@@ -121,7 +129,7 @@ const formatDuration = (value) => {
 	})
 
 	if (!duration.isValid) {
-		// stderr, drop row
+    throw new Error(INVALID_DATA_ERROR)
 	}
 
 	return duration
