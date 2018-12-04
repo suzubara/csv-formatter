@@ -87,7 +87,7 @@ const parseCSVLine = (string) => {
 }
 
 const formatTimestamp = (value) => {
-	// Format in ISO-8601, and convert US/Pacific to US/Eastern
+  // Format in ISO-8601, and convert US/Pacific to US/Eastern
 	const timestamp = DateTime.fromFormat(
 		value,
 		TIMESTAMP_FORMAT,
@@ -103,39 +103,39 @@ const formatTimestamp = (value) => {
 }
 
 const formatZip = (value) => {
-	value = value.padStart(5, '0')
+  value = value.padStart(5, '0')
 
-	if (ZIP_FORMAT.test(value)) {
-		return value
-	}
+  if (ZIP_FORMAT.test(value)) {
+	  return value
+  }
 
   throw new Error(INVALID_DATA_ERROR)
 }
 
 const capitalizeString = (string) => {
-	return string.split(' ').map(capitalizeWord).join(' ')
+  return string.split(' ').map(capitalizeWord).join(' ')
 }
 
 const capitalizeWord = s => (
-	s.charAt(0).toUpperCase() + s.substring(1)
+  s.charAt(0).toUpperCase() + s.substring(1)
 )
 
 const formatDuration = (value) => {
-	const [hours, minutes, seconds] = value.split(':')
-	const [s, ms] = seconds.split('.')
+  const [hours, minutes, seconds] = value.split(':')
+  const [s, ms] = seconds.split('.')
 
-	const duration = Duration.fromObject({
-		hours: parseInt(hours),
-		minutes: parseInt(minutes),
-		seconds: parseInt(seconds),
-		milliseconds: parseInt(ms)
-	})
+  const duration = Duration.fromObject({
+    hours: parseInt(hours),
+    minutes: parseInt(minutes),
+    seconds: parseInt(seconds),
+    milliseconds: parseInt(ms)
+  })
 
-	if (!duration.isValid) {
+  if (!duration.isValid) {
     throw new Error(INVALID_DATA_ERROR)
-	}
+  }
 
-	return duration
+  return duration
 }
 
 const durationAsSeconds = duration => duration.as('seconds')
